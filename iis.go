@@ -8,14 +8,15 @@ import (
 )
 
 /*
-<?xml version="1.0" encoding="utf-8"?>
-<rewriteMaps>
-  <rewriteMap name="PermanentRedirects" defaultValue="">
-    <add key="/from1" value="dest1" />
-  </rewriteMap>
-</rewriteMaps>
-*/
+	Example of parsing structure
 
+	<?xml version="1.0" encoding="utf-8"?>
+	<rewriteMaps>
+	  <rewriteMap name="PermanentRedirects" defaultValue="">
+		<add key="/from1" value="dest1" />
+	  </rewriteMap>
+	</rewriteMaps>
+*/
 type rewriteMaps struct {
 	Rewrites []rewriteMap `xml:"rewriteMap"`
 }
@@ -28,9 +29,11 @@ type rewriteMap struct {
 type rewrite struct {
 	From string `xml:"key,attr"`
 	To   string `xml:"value,attr"`
-	//Type int
 }
 
+// END: Parsing input structure
+
+// Return from parseRewriteMap
 type rewrites struct {
 	From string
 	To   string
@@ -62,13 +65,10 @@ func parseRewriteMap(file_path string) (redirects []rewrites, err error) {
 	for _, k := range out.Rewrites {
 		code := redirectType[k.Name]
 		for _, r := range k.Rewrites {
-			// fmt.Println(code, r.From, r.To)
 			ret = append(ret, rewrites{From: r.From, To: r.To, Type: code})
 		}
 
 	}
 
-	// fmt.Println(ret)
-	// fmt.Println(out.Rewrites)
 	return ret, nil
 }
