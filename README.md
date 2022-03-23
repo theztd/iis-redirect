@@ -1,6 +1,6 @@
 # Convert IIS rewriteMap redirects to cloudflare functions
 
-
+[![Release Go project](https://github.com/theztd/iis-redirect/actions/workflows/release.yml/badge.svg)](https://github.com/theztd/iis-redirect/actions/workflows/release.yml)
 
 ## Overview
 
