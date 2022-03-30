@@ -6,18 +6,19 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func createCfRedirect(from string, to string, code int) {
+func cfParametrizedRedirectOLD(from string, to string, code int) {
 	/*
 		Deploy script to path depend on from
 
-		mkdir -p $web_directory/$from - file name
+		mkdir -p $webDirectory/$from - file name
 	*/
 	// split path to dir and file
 	dir, _ := filepath.Split(from)
-	if os.MkdirAll(filepath.Join(web_directory, dir), os.ModePerm) != nil {
-		log.Panicln("ERR: Unable to create directory", filepath.Join(web_directory, dir))
+	if os.MkdirAll(filepath.Join(webDirectory, dir), os.ModePerm) != nil {
+		log.Panicln("ERR: Unable to create directory", filepath.Join(webDirectory, dir))
 	}
 
 	/*
@@ -28,11 +29,11 @@ func createCfRedirect(from string, to string, code int) {
 	script := []byte(fmt.Sprintf("import { REDIRECTS } from './config';\n\nexport async function onRequest(context) {\n  return Response.redirect(REDIRECTS[context.request.url.split('?')[1]], %d);\n}", code))
 
 	// Write content to file
-	if err := os.WriteFile(filepath.Join(web_directory, dir, "script.js"), script, 0644); err != nil {
-		log.Panicln("Unable to deploy script")
+	if err := os.WriteFile(filepath.Join(webDirectory, dir, "script.js"), script, 0644); err != nil {
+		log.Panicln("ERR:", err)
 	}
 	if verbose {
-		log.Println("Create script:", filepath.Join(web_directory, dir, "script.js"))
+		log.Println("Create parametrized script:", filepath.Join(webDirectory, dir, "script.js"))
 	}
 
 	/*
@@ -40,7 +41,7 @@ func createCfRedirect(from string, to string, code int) {
 
 		- in case the file already exists, only add new redirect
 	*/
-	config_path := filepath.Join(web_directory, dir, "config.js")
+	config_path := filepath.Join(webDirectory, dir, "config.js")
 	if _, err := os.Stat(config_path); err == nil {
 		// File does NOT exists
 
@@ -65,4 +66,90 @@ func createCfRedirect(from string, to string, code int) {
 		}
 	}
 
+}
+
+func cfParametrizedRedirect(from string, to string, code int) {
+	/*
+		Split from path to directory and file
+		- prepare directory structure
+		- create FILE_NAME.ts file with redirecting script
+		- create file FILE_NAME-config.ts and append redirects
+	*/
+	ret := strings.Split(from, "?")
+	fDir, fName := filepath.Split(ret[0])
+	fArgs := ret[1]
+
+	if verbose {
+		log.Println(" - script:", filepath.Join(webDirectory, fDir, fName)+".ts")
+	}
+
+	if verbose {
+		log.Println(" - mapping:", fArgs, " >>> ", to)
+	}
+
+	// create directory structure
+
+	/*
+
+
+
+		Pokracovat zde
+
+
+
+	*/
+
+}
+
+func cfFileRedirect(from string, to string, code int) {
+	/*
+		Split from path to directory and file.
+		Than prepare directory path and pass redirection to file
+	*/
+	if verbose {
+		log.Println(" - script:", filepath.Join(webDirectory, from))
+	}
+
+	// Prepare directory structure
+	fDir, _ := filepath.Split(from)
+	if _, err := os.Stat(filepath.Join(webDirectory, fDir)); err != nil {
+		if os.MkdirAll(filepath.Join(webDirectory, fDir), os.ModePerm) != nil {
+			log.Panicln("ERR: Unable to create directory", filepath.Join(webDirectory, fDir))
+			// return fmt.Errorf("Unable to create directory")
+		}
+	}
+
+	// Create script
+	script := []byte(fmt.Sprintf("export async function onRequest(context) {\n  return Response.redirect(%s, %d);\n}", to, code))
+
+	if err := os.WriteFile(filepath.Join(webDirectory, from), script, 0644); err != nil {
+		log.Fatalln("ERR:", err, "\n  (detail: ", from, to, code, ")")
+	}
+
+}
+
+func cfSimpleRedirect(from string, to string, code int) { //(err error) {
+	/*
+		Prepare directory structure and create index.ts with redirecting code
+	*/
+	if verbose {
+		log.Println(" - script:", filepath.Join(webDirectory, from, "index.ts"))
+	}
+
+	// Prepare directory structure
+	if _, err := os.Stat(filepath.Join(webDirectory, from)); err != nil {
+		if os.MkdirAll(filepath.Join(webDirectory, from), os.ModePerm) != nil {
+			log.Panicln("ERR: Unable to create directory", filepath.Join(webDirectory, from))
+			// return fmt.Errorf("Unable to create directory")
+		}
+	}
+
+	//Create script
+	script := []byte(fmt.Sprintf("export async function onRequest(context) {\n  return Response.redirect(%s, %d);\n}", to, code))
+
+	if err := os.WriteFile(filepath.Join(webDirectory, from, "index.ts"), script, 0644); err != nil {
+		log.Fatalln("ERR:", err, "\n  (detail: ", from, to, code, ")")
+	}
+
+	// return nil
 }
