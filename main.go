@@ -25,18 +25,23 @@ func main() {
 	for _, r := range rewrites {
 
 		if strings.Contains(r.From, ".") && strings.Contains(r.From, "?") == false {
-			log.Println("File:", r.From)
+			if verbose {
+				log.Println("File:", r.From)
+			}
 			cfFileRedirect(r.From, r.To, r.Type)
 			continue
 		}
 
 		if strings.Contains(r.From, "?") {
-			log.Println("Parametrized:", r.From)
+			if verbose {
+				log.Println("Parametrized:", r.From)
+			}
 			cfParametrizedRedirect(r.From, r.To, r.Type)
 			continue
 		}
-
-		log.Println("Simple:", r.From)
+		if verbose {
+			log.Println("Simple:", r.From)
+		}
 		cfSimpleRedirect(r.From, r.To, r.Type)
 
 	}
